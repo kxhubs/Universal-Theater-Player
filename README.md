@@ -56,10 +56,27 @@
 
 为支持跨域播放器 iframe，脚本额外适配以下已知播放器域名：
 
+- `supremejav.com`
+- `fc2stream.tv`
+- `turbovidhls.com`
+- `streamtape.com`
+- `voe.sx`
 - `surrit.store`
 - `18av.mm-cg.com`
 
 ## 最近调整
+
+### 5.1.10.9
+
+- 修复跨域子播放器关闭后仍保留“已打开”状态，导致再次进入影院模式不重建界面的问题。
+
+### 5.1.10.8
+
+- 修复 `supjav.com` 的 TV 源最终跳转到 `turbovidhls.com` 后，消息链路中断、只能放大原 iframe 的问题。
+
+### 5.1.10.7
+
+- 修复 `supjav.com` 的跨域路由页及其 FST、ST、VOE 播放器未注入脚本，影院模式只能放大原 iframe 的问题。
 
 ### 5.1.10.6
 

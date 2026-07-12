@@ -11,7 +11,7 @@
 // @description:vi Chế độ rạp hát phổ dụng|điều khiển phát một tay|hỗ trợ trình phát iframe khác nguồn|thanh tiến trình, tốc độ, lặp và tua tùy chỉnh
 // @description:zh-CN 通用视频影院模式|单手播放控制|跨域 iframe 播放器适配|自定义进度、倍速、循环和快进快退控制
 // @description:zh-TW 通用影片影院模式|單手播放控制|跨來源 iframe 播放器適配|自訂進度、倍速、循環與快進快退控制
-// @version 5.1.10.6
+// @version 5.1.10.9
 // @author Chris_C
 // @match *://jable.tv/*
 // @match *://*.jable.tv/*
@@ -39,6 +39,16 @@
 // @match *://*.jav.guru/*
 // @match *://supjav.com/*
 // @match *://*.supjav.com/*
+// @match *://supremejav.com/*
+// @match *://*.supremejav.com/*
+// @match *://fc2stream.tv/*
+// @match *://*.fc2stream.tv/*
+// @match *://turbovidhls.com/*
+// @match *://*.turbovidhls.com/*
+// @match *://streamtape.com/*
+// @match *://*.streamtape.com/*
+// @match *://voe.sx/*
+// @match *://*.voe.sx/*
 // @match *://123av.com/*
 // @match *://*.123av.com/*
 // @match *://surrit.store/*
@@ -70,7 +80,7 @@
       isTop = window.top === window.self;
     } catch (err) {}
     var isKnownAdFrame = /(^|\.)eix304\.com$|(^|\.)mnaspm\.com$|(^|\.)trackwilltrk\.com$|(^|\.)popads\.net$|(^|\.)exoclick\.com$/i.test(host) || /[?&](spotid|type=300x250|output=html)|smartpop|trackwilltrk|\/ad[?\/]/i.test(href);
-    var isLikelyPlayerFrame = /(^|\.)supremejav\.com$/i.test(host) || /(^|\.)supjav\.com$/i.test(host) || /player|video|embed|stream|media|supjav\.php/i.test(href);
+    var isLikelyPlayerFrame = /(^|\.)(supremejav\.com|fc2stream\.tv|turbovidhls\.com|streamtape\.com|voe\.sx)$/i.test(host) || /player|video|embed|stream|media|supjav\.php/i.test(href);
     return {
       "href": href,
       "host": host,
@@ -85,7 +95,7 @@
   }
   var MissPlayerDebug = function() {
     var SCRIPT_NAME = "Universal Theater Player";
-    var VERSION = "5.1.10.6";
+    var VERSION = "5.1.10.9";
     var STORAGE_PREFIX = "missNoAD_";
     var DEBUG_KEY = "debugEnabled";
     var MAX_LOGS = 300;
@@ -1281,7 +1291,7 @@
             self.frame.contentWindow.postMessage({
               "source": "MissPlayer",
               "action": "open-child-player",
-              "version": "5.1.10.5",
+              "version": "5.1.10.9",
               "depth": 0
             }, "*");
             MissPlayerDebug.mark("iframeTheater:postMessage", {
@@ -1321,7 +1331,7 @@
           this.frame.contentWindow.postMessage({
             "source": "MissPlayer",
             "action": "close-child-player",
-            "version": "5.1.10.5",
+            "version": "5.1.10.9",
             "reason": "parent-iframe-theater-close",
             "depth": 0
           }, "*");
@@ -5040,6 +5050,9 @@
         this.cleanup();
         this.playerCore.close(this.uiElements.overlay, this.uiElements.container, this.uiElements.playerContainer);
         try {
+          window.dispatchEvent(new CustomEvent("miss-player-local-player-closed"));
+        } catch (localCloseErr) {}
+        try {
           if (window.parent && window.parent !== window) {
             window.parent.postMessage({
               "source": "MissPlayer",
@@ -6222,6 +6235,17 @@
           return;
         }
         this.messageListenerAttached = true;
+        window.addEventListener("miss-player-local-player-closed", (function() {
+          r.videoPlayer = null;
+          r.childPlayerOpened = false;
+          r.childOpenAttemptActive = false;
+          window.__missPlayerChildPlayerOpened = false;
+          if (r.childOpenInterval) {
+            clearInterval(r.childOpenInterval);
+            r.childOpenInterval = null;
+          }
+          MissPlayerDebug.mark("player:local-close-state-reset");
+        }));
         var postToParent = function postToParent(action, detail) {
           try {
             if (window.parent && window.parent !== window) {
@@ -6251,7 +6275,7 @@
                 frame.contentWindow.postMessage({
                   "source": "MissPlayer",
                   "action": "open-child-player",
-                  "version": "5.1.10.5",
+                  "version": "5.1.10.9",
                   "depth": depth
                 }, "*");
                 sent += 1;
@@ -6282,7 +6306,7 @@
                 frame.contentWindow.postMessage({
                   "source": "MissPlayer",
                   "action": "close-child-player",
-                  "version": "5.1.10.5",
+                  "version": "5.1.10.9",
                   "depth": depth
                 }, "*");
                 sent += 1;
