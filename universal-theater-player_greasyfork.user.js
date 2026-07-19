@@ -11,7 +11,7 @@
 // @description:vi Chế độ rạp hát phổ dụng|điều khiển phát một tay|hỗ trợ trình phát iframe khác nguồn|thanh tiến trình, tốc độ, lặp và tua tùy chỉnh
 // @description:zh-CN 通用视频影院模式|单手播放控制|跨域 iframe 播放器适配|自定义进度、倍速、循环和快进快退控制
 // @description:zh-TW 通用影片影院模式|單手播放控制|跨來源 iframe 播放器適配|自訂進度、倍速、循環與快進快退控制
-// @version 5.1.10.9
+// @version 5.1.10.10
 // @author Chris_C
 // @match *://jable.tv/*
 // @match *://*.jable.tv/*
@@ -95,7 +95,7 @@
   }
   var MissPlayerDebug = function() {
     var SCRIPT_NAME = "Universal Theater Player";
-    var VERSION = "5.1.10.9";
+    var VERSION = "5.1.10.10";
     var STORAGE_PREFIX = "missNoAD_";
     var DEBUG_KEY = "debugEnabled";
     var MAX_LOGS = 300;
@@ -1291,7 +1291,7 @@
             self.frame.contentWindow.postMessage({
               "source": "MissPlayer",
               "action": "open-child-player",
-              "version": "5.1.10.9",
+              "version": "5.1.10.10",
               "depth": 0
             }, "*");
             MissPlayerDebug.mark("iframeTheater:postMessage", {
@@ -1331,7 +1331,7 @@
           this.frame.contentWindow.postMessage({
             "source": "MissPlayer",
             "action": "close-child-player",
-            "version": "5.1.10.9",
+            "version": "5.1.10.10",
             "reason": "parent-iframe-theater-close",
             "depth": 0
           }, "*");
@@ -2464,7 +2464,7 @@
               r.playerCore.controlManager.updatePlayPauseButton();
             }
           };
-          if (r.isLandscape) {
+          if (r.isLandscape || r.isCompactPortraitMode()) {
             l();
             r.showControls();
             r.autoHideControls();
@@ -2656,6 +2656,8 @@
         if (this.isLandscape) {
           this.showControls();
           this.autoHideControls();
+        } else if (this.isCompactPortraitMode()) {
+          this.hideControls();
         } else {
           this.showControls();
           if (this.controlsHideTimerId) {
@@ -2773,20 +2775,41 @@
         this.overlay.classList.remove("controls-hidden");
         document.body.classList.remove("controls-hidden");
         this.controlsVisible = true;
+        this.updateMiniProgressVisibility();
         if (this.controlsHideTimerId) {
           b.clearTimeout(this.controlsHideTimerId);
           this.controlsHideTimerId = null;
         }
       }
     }, {
+      "key": "isCompactPortraitMode",
+      "value": function isCompactPortraitMode() {
+        var r = window.matchMedia && window.matchMedia("(hover: none)").matches;
+        var o = "ontouchstart" in window || navigator.maxTouchPoints > 0 || r;
+        return !this.isLandscape && o && Math.min(window.innerWidth, window.innerHeight) <= 600;
+      }
+    }, {
+      "key": "updateMiniProgressVisibility",
+      "value": function updateMiniProgressVisibility() {
+        var r = this.playerCore && this.playerCore.controlManager && this.playerCore.controlManager.miniProgressBarContainer;
+        if (!r) {
+          return;
+        }
+        var o = r.dataset.enabled !== "false" && this.isCompactPortraitMode() && document.body.classList.contains("controls-hidden");
+        r.style.display = o ? "flex" : "none";
+        r.style.opacity = o ? "0.85" : "0";
+        r.style.pointerEvents = o ? "auto" : "none";
+      }
+    }, {
       "key": "hideControls",
       "value": function hideControls() {
-        if (!this.overlay || !this.isLandscape) {
+        if (!this.overlay || !this.isLandscape && !this.isCompactPortraitMode()) {
           return;
         }
         this.overlay.classList.add("controls-hidden");
         document.body.classList.add("controls-hidden");
         this.controlsVisible = false;
+        this.updateMiniProgressVisibility();
       }
     }, {
       "key": "toggleControlsVisibility",
@@ -2803,7 +2826,7 @@
       "value": function autoHideControls() {
         var r = this;
         v.startMeasure("autoHideControls");
-        if (!this.isLandscape) {
+        if (!this.isLandscape && !this.isCompactPortraitMode()) {
           v.endMeasure("autoHideControls");
           return;
         }
@@ -2811,10 +2834,22 @@
           v.endMeasure("autoHideControls");
           return;
         }
+        if (this.settingsPanel && this.settingsPanel.classList.contains("visible")) {
+          v.endMeasure("autoHideControls");
+          return;
+        }
         if (this.controlsHideTimerId) {
           b.clearTimeout(this.controlsHideTimerId);
         }
         this.controlsHideTimerId = b.setTimeout((function() {
+          var o = r.playerCore && r.playerCore.controlManager;
+          if (o && o.isDraggingProgress) {
+            r.autoHideControls();
+            return;
+          }
+          if (r.settingsPanel && r.settingsPanel.classList.contains("visible")) {
+            return;
+          }
           r.hideControls();
         }), 3e3, "controlsHide");
         v.endMeasure("autoHideControls");
@@ -2848,11 +2883,15 @@
         if (this.playerCore.controlManager && this.playerCore.controlManager.controlButtonsContainer) {
           this.playerContainer.appendChild(this.playerCore.controlManager.controlButtonsContainer);
         }
+        if (this.playerCore.controlManager && this.playerCore.controlManager.miniProgressBarContainer) {
+          this.playerContainer.appendChild(this.playerCore.controlManager.miniProgressBarContainer);
+        }
         document.body.appendChild(this.overlay);
         document.body.appendChild(this.playerContainer);
         MissPlayerTheaterShield.apply();
         this.updateContainerMinHeight();
         this.setupInteractionListeners();
+        this.handleOrientationChange();
       }
     } ]);
   }();
@@ -2973,6 +3012,8 @@
       this.muteButton = null;
       this.progressBarElement = null;
       this.progressIndicator = null;
+      this.miniProgressBarContainer = null;
+      this.miniProgressIndicator = null;
       this.currentTimeDisplay = null;
       this.totalDurationDisplay = null;
       this.timeIndicator = null;
@@ -3003,10 +3044,12 @@
       "key": "init",
       "value": function init() {
         this.progressControlsContainer = this.createProgressControls();
+        this.miniProgressBarContainer = this.createMiniProgressBar();
         this.controlButtonsContainer = this.createControlButtonsContainer();
         this.initEventListeners();
         return {
           "progressControlsContainer": this.progressControlsContainer,
+          "miniProgressBarContainer": this.miniProgressBarContainer,
           "controlButtonsContainer": this.controlButtonsContainer
         };
       }
@@ -3117,6 +3160,32 @@
         this.progressControlsContainer.appendChild(o);
         this.progressControlsContainer.appendChild(a);
         return this.progressControlsContainer;
+      }
+    }, {
+      "key": "createMiniProgressBar",
+      "value": function createMiniProgressBar() {
+        var r = this;
+        var o = document.createElement("div");
+        o.className = "tm-mini-progress-bar-container";
+        o.dataset.enabled = "true";
+        o.style.cssText = "position:absolute;bottom:calc(10px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%);width:92%;max-width:640px;min-width:240px;height:18px;display:none;align-items:center;z-index:9993;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;";
+        var a = document.createElement("div");
+        a.className = "tm-mini-progress-bar";
+        a.style.cssText = "position:relative;width:100%;height:4px;border-radius:4px;overflow:hidden;background-color:hsla(var(--shadcn-muted) / 0.45);box-shadow:0 1px 6px rgba(0,0,0,.25);";
+        this.miniProgressIndicator = document.createElement("div");
+        this.miniProgressIndicator.className = "tm-mini-progress-indicator";
+        this.miniProgressIndicator.style.cssText = "position:absolute;left:0;top:0;height:100%;width:0%;background-color:hsl(var(--shadcn-blue));border-radius:4px;transition:width .1s linear;";
+        a.appendChild(this.miniProgressIndicator);
+        o.appendChild(a);
+        o.addEventListener("click", (function(o) {
+          o.preventDefault();
+          o.stopPropagation();
+          if (r.playerCore.uiManager) {
+            r.playerCore.uiManager.showControls();
+            r.playerCore.uiManager.autoHideControls();
+          }
+        }));
+        return o;
       }
     }, {
       "key": "createControlButtonsContainer",
@@ -3670,6 +3739,9 @@
         }
         var a = r / o * 100;
         this.progressIndicator.style.width = "".concat(a, "%");
+        if (this.miniProgressIndicator) {
+          this.miniProgressIndicator.style.width = "".concat(a, "%");
+        }
         this.updateCurrentTimeDisplay();
         if (this.loopManager && this.loopManager.loopActive && null !== this.loopManager.loopStartTime && null !== this.loopManager.loopEndTime) {
           if (r >= this.loopManager.loopEndTime) {
@@ -5362,8 +5434,17 @@
         var a = r.querySelector(".tm-loop-control-row");
         var l = r.querySelector(".tm-playback-control-row");
         var u = r.querySelector(".tm-progress-row");
+        var p = document.querySelector(".tm-mini-progress-bar-container");
         if (u) {
           u.style.display = this.settings.showProgressBar ? "flex" : "none";
+        }
+        if (p) {
+          p.dataset.enabled = this.settings.showProgressBar ? "true" : "false";
+          if (!this.settings.showProgressBar) {
+            p.style.display = "none";
+          } else if (this.uiElements && this.uiElements.uiManager) {
+            this.uiElements.uiManager.updateMiniProgressVisibility();
+          }
         }
         if (o) {
           o.style.display = this.settings.showSeekControlRow ? "flex" : "none";
@@ -6052,6 +6133,8 @@
         }
         var o = new k(this.playerCore);
         var u = o.createUI();
+        u.uiManager = o;
+        this.playerCore.uiManager = o;
         this.managers.uiManager = o;
         var p = new E(this.playerCore, u);
         p.init();
@@ -6275,7 +6358,7 @@
                 frame.contentWindow.postMessage({
                   "source": "MissPlayer",
                   "action": "open-child-player",
-                  "version": "5.1.10.9",
+                  "version": "5.1.10.10",
                   "depth": depth
                 }, "*");
                 sent += 1;
@@ -6306,7 +6389,7 @@
                 frame.contentWindow.postMessage({
                   "source": "MissPlayer",
                   "action": "close-child-player",
-                  "version": "5.1.10.9",
+                  "version": "5.1.10.10",
                   "depth": depth
                 }, "*");
                 sent += 1;
