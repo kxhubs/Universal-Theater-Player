@@ -1411,7 +1411,7 @@
       return /header|navbar|nav|top|sticky|fixed|app-bar|toolbar|menu/i.test(text) || numberFromZIndex(style.zIndex) >= 100;
     }
     function raisePlayerLayers() {
-      var layers = [ [ ".tm-video-overlay", Z_INDEX ], [ ".tm-player-container", Z_INDEX + 1 ], [ ".tm-video-container", Z_INDEX + 2 ], [ ".tm-button-container", Z_INDEX + 4 ], [ ".tm-control-buttons", Z_INDEX + 4 ], [ ".tm-settings-panel", Z_INDEX + 5 ], [ ".tm-iframe-theater-close", Z_INDEX + 5 ] ];
+      var layers = [ [ ".tm-video-overlay", Z_INDEX ], [ ".tm-player-container", Z_INDEX + 1 ], [ ".tm-video-container", Z_INDEX + 2 ], [ ".tm-button-container", Z_INDEX + 4 ], [ ".tm-control-buttons", Z_INDEX + 4 ], [ ".tm-mini-progress-bar-container", Z_INDEX + 4 ], [ ".tm-settings-panel", Z_INDEX + 5 ], [ ".tm-iframe-theater-close", Z_INDEX + 5 ] ];
       layers.forEach((function(item) {
         try {
           document.querySelectorAll(item[0]).forEach((function(node) {
@@ -2362,6 +2362,9 @@
         this.videoWrapper.appendChild(this.targetVideo);
         this.targetVideo.addEventListener("loadedmetadata", (function() {
           r.updateVideoAspectRatio();
+          if (r.isCompactMobileViewport()) {
+            r.handleOrientationChange();
+          }
         }));
         var o = null;
         var a = false;
@@ -2464,6 +2467,11 @@
               r.playerCore.controlManager.updatePlayPauseButton();
             }
           };
+          if (r.isCompactPortraitMode() && !r.controlsVisible) {
+            r.showControls();
+            r.autoHideControls();
+            return;
+          }
           if (r.isLandscape || r.isCompactPortraitMode()) {
             l();
             r.showControls();
@@ -2782,11 +2790,18 @@
         }
       }
     }, {
-      "key": "isCompactPortraitMode",
-      "value": function isCompactPortraitMode() {
+      "key": "isCompactMobileViewport",
+      "value": function isCompactMobileViewport() {
         var r = window.matchMedia && window.matchMedia("(hover: none)").matches;
         var o = "ontouchstart" in window || navigator.maxTouchPoints > 0 || r;
         return !this.isLandscape && o && Math.min(window.innerWidth, window.innerHeight) <= 600;
+      }
+    }, {
+      "key": "isCompactPortraitMode",
+      "value": function isCompactPortraitMode() {
+        var r = this.targetVideo && this.targetVideo.videoWidth;
+        var o = this.targetVideo && this.targetVideo.videoHeight;
+        return this.isCompactMobileViewport() && r > 0 && o > 0 && r < o;
       }
     }, {
       "key": "updateMiniProgressVisibility",
@@ -2867,6 +2882,10 @@
         var o = this.targetVideo.videoHeight || this.targetVideo.naturalHeight;
         if (r && o) {
           var a = window.innerWidth * (o / r);
+          if (this.isCompactPortraitMode()) {
+            var l = window.innerHeight - 44 - 30 - 20 - this.safeArea.bottom;
+            a = Math.min(a, l);
+          }
           this.container.style.minHeight = "".concat(a, "px");
         }
       }
@@ -3168,7 +3187,7 @@
         var o = document.createElement("div");
         o.className = "tm-mini-progress-bar-container";
         o.dataset.enabled = "true";
-        o.style.cssText = "position:absolute;bottom:calc(10px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%);width:92%;max-width:640px;min-width:240px;height:18px;display:none;align-items:center;z-index:9993;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;";
+        o.style.cssText = "position:relative;flex:0 0 18px;margin-top:2px;width:92%;max-width:640px;min-width:240px;height:18px;display:none;align-items:center;z-index:9993;opacity:0;pointer-events:none;transition:opacity .25s ease;";
         var a = document.createElement("div");
         a.className = "tm-mini-progress-bar";
         a.style.cssText = "position:relative;width:100%;height:4px;border-radius:4px;overflow:hidden;background-color:hsla(var(--shadcn-muted) / 0.45);box-shadow:0 1px 6px rgba(0,0,0,.25);";
@@ -6141,6 +6160,7 @@
         this.managers.settingsManager = p;
         var v = new C(this.playerCore, u);
         var y = v.createProgressControls();
+        v.createMiniProgressBar();
         var b = v.createControlButtonsContainer();
         this.managers.controlManager = v;
         this.playerCore.controlManager = v;
