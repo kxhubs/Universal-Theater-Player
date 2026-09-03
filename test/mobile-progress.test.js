@@ -8,6 +8,11 @@ const source = fs.readFileSync(
 );
 new Function(source);
 
+const metadataVersion = source.match(/^\/\/ @version (.+)$/m);
+const runtimeVersion = source.match(/var VERSION = "([^"]+)";/);
+assert.equal(metadataVersion && metadataVersion[1], "5.1.10.11");
+assert.equal(runtimeVersion && runtimeVersion[1], "5.1.10.11");
+
 function section(start, end, from = 0) {
   const startIndex = source.indexOf(start, from);
   assert.notEqual(startIndex, -1, `missing section start: ${start}`);
@@ -41,6 +46,25 @@ assert.match(
 const compactPortraitMode = section(
   '"key": "isCompactPortraitMode",',
   '"key": "updateMiniProgressVisibility",',
+);
+const mobileViewport = section(
+  '"key": "isMobileViewport",',
+  '"key": "isCompactMobileViewport",',
+);
+assert.match(
+  mobileViewport,
+  /ontouchstart|maxTouchPoints|hover: none/,
+  "compact portrait layout must remain limited to touch-style devices",
+);
+assert.match(
+  mobileViewport,
+  /userAgentData|navigator\.userAgent/,
+  "compact portrait layout must require a mobile platform signal so touch PCs stay in desktop mode",
+);
+assert.match(
+  mobileViewport,
+  /Math\.min\(window\.innerWidth, window\.innerHeight\) <= 600/,
+  "compact portrait layout must remain limited to mobile-sized viewports",
 );
 assert.match(
   source,
@@ -93,8 +117,8 @@ assert.notEqual(clickStart, -1, "missing video click handler");
 const videoClickHandler = source.slice(clickStart, clickStart + 1800);
 assert.match(
   videoClickHandler,
-  /isCompactPortraitMode\(\) && !r\.controlsVisible[\s\S]+showControls\(\)[\s\S]+autoHideControls\(\)[\s\S]+return;/,
-  "the first tap with hidden portrait-video controls must reveal controls without pausing",
+  /if \(!r\.controlsVisible\) {[\s\S]+showControls\(\)[\s\S]+autoHideControls\(\)[\s\S]+return;/,
+  "the first tap with hidden floating controls must reveal them without pausing on mobile and desktop",
 );
 
 console.log("mobile progress regression checks passed");

@@ -11,7 +11,7 @@
 // @description:vi Chế độ rạp hát phổ dụng|điều khiển phát một tay|hỗ trợ trình phát iframe khác nguồn|thanh tiến trình, tốc độ, lặp và tua tùy chỉnh
 // @description:zh-CN 通用视频影院模式|单手播放控制|跨域 iframe 播放器适配|自定义进度、倍速、循环和快进快退控制
 // @description:zh-TW 通用影片影院模式|單手播放控制|跨來源 iframe 播放器適配|自訂進度、倍速、循環與快進快退控制
-// @version 5.1.10.10
+// @version 5.1.10.11
 // @author Chris_C
 // @match *://jable.tv/*
 // @match *://*.jable.tv/*
@@ -95,7 +95,7 @@
   }
   var MissPlayerDebug = function() {
     var SCRIPT_NAME = "Universal Theater Player";
-    var VERSION = "5.1.10.10";
+    var VERSION = "5.1.10.11";
     var STORAGE_PREFIX = "missNoAD_";
     var DEBUG_KEY = "debugEnabled";
     var MAX_LOGS = 300;
@@ -2467,7 +2467,7 @@
               r.playerCore.controlManager.updatePlayPauseButton();
             }
           };
-          if (r.isCompactPortraitMode() && !r.controlsVisible) {
+          if (!r.controlsVisible) {
             r.showControls();
             r.autoHideControls();
             return;
@@ -2790,11 +2790,18 @@
         }
       }
     }, {
-      "key": "isCompactMobileViewport",
-      "value": function isCompactMobileViewport() {
+      "key": "isMobileViewport",
+      "value": function isMobileViewport() {
         var r = window.matchMedia && window.matchMedia("(hover: none)").matches;
         var o = "ontouchstart" in window || navigator.maxTouchPoints > 0 || r;
-        return !this.isLandscape && o && Math.min(window.innerWidth, window.innerHeight) <= 600;
+        var a = navigator.userAgent || "";
+        var l = navigator.userAgentData && "boolean" === typeof navigator.userAgentData.mobile ? navigator.userAgentData.mobile : /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(a) || /Macintosh/i.test(a) && navigator.maxTouchPoints > 1;
+        return l && o && Math.min(window.innerWidth, window.innerHeight) <= 600;
+      }
+    }, {
+      "key": "isCompactMobileViewport",
+      "value": function isCompactMobileViewport() {
+        return !this.isLandscape && this.isMobileViewport();
       }
     }, {
       "key": "isCompactPortraitMode",
