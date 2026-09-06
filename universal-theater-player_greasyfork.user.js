@@ -11,7 +11,7 @@
 // @description:vi Chế độ rạp hát phổ dụng|điều khiển phát một tay|hỗ trợ trình phát iframe khác nguồn|thanh tiến trình, tốc độ, lặp và tua tùy chỉnh
 // @description:zh-CN 通用视频影院模式|单手播放控制|跨域 iframe 播放器适配|自定义进度、倍速、循环和快进快退控制
 // @description:zh-TW 通用影片影院模式|單手播放控制|跨來源 iframe 播放器適配|自訂進度、倍速、循環與快進快退控制
-// @version 5.1.10.11
+// @version 5.1.10.12
 // @author Chris_C
 // @match *://jable.tv/*
 // @match *://*.jable.tv/*
@@ -95,7 +95,7 @@
   }
   var MissPlayerDebug = function() {
     var SCRIPT_NAME = "Universal Theater Player";
-    var VERSION = "5.1.10.11";
+    var VERSION = "5.1.10.12";
     var STORAGE_PREFIX = "missNoAD_";
     var DEBUG_KEY = "debugEnabled";
     var MAX_LOGS = 300;
@@ -1205,7 +1205,7 @@
       this.overlay.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;background:transparent;z-index:2147483000;display:block;box-sizing:border-box;pointer-events:none;";
       this.container = document.createElement("div");
       this.container.className = "tm-iframe-theater-container";
-      this.container.style.cssText = "position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000;border-radius:8px;overflow:hidden;";
+      this.container.style.cssText = "position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000;border-radius:8px;overflow:hidden;z-index:2147483001;pointer-events:auto;";
       this.closeButton = document.createElement("button");
       this.closeButton.type = "button";
       this.closeButton.className = "tm-close-button tm-iframe-theater-close";
@@ -1219,10 +1219,12 @@
       this.overlay.addEventListener("click", (function() {
         MissPlayerDebug.mark("iframeTheater:overlay-click-ignored");
       }));
-      document.body.appendChild(this.overlay);
-      this.overlay.appendChild(this.closeButton);
       this.prepareAncestors();
-      this.frame.style.cssText = "position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;max-width:100vw !important;max-height:100vh !important;border:0 !important;background:#000 !important;display:block !important;z-index:2147483002 !important;pointer-events:auto !important;";
+      document.body.appendChild(this.overlay);
+      this.overlay.appendChild(this.container);
+      this.container.appendChild(this.frame);
+      this.overlay.appendChild(this.closeButton);
+      this.frame.style.cssText = "position:relative !important;inset:auto !important;width:100% !important;height:100% !important;max-width:100% !important;max-height:100% !important;border:0 !important;background:#000 !important;display:block !important;z-index:1 !important;pointer-events:auto !important;";
       document.body.classList.add("controls-hidden");
       MissPlayerTheaterShield.apply();
       this.requestChildPlayerOpen();
