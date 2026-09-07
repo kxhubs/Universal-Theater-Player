@@ -11,7 +11,7 @@
 // @description:vi Chế độ rạp hát phổ dụng|điều khiển phát một tay|hỗ trợ trình phát iframe khác nguồn|thanh tiến trình, tốc độ, lặp và tua tùy chỉnh
 // @description:zh-CN 通用视频影院模式|单手播放控制|跨域 iframe 播放器适配|自定义进度、倍速、循环和快进快退控制
 // @description:zh-TW 通用影片影院模式|單手播放控制|跨來源 iframe 播放器適配|自訂進度、倍速、循環與快進快退控制
-// @version 5.1.10.12
+// @version 5.1.10.13
 // @author Chris_C
 // @match *://jable.tv/*
 // @match *://*.jable.tv/*
@@ -51,6 +51,8 @@
 // @match *://*.voe.sx/*
 // @match *://123av.com/*
 // @match *://*.123av.com/*
+// @match *://javplayer.cc/*
+// @match *://*.javplayer.cc/*
 // @match *://surrit.store/*
 // @match *://*.surrit.store/*
 // @match *://18av.mm-cg.com/*
@@ -95,7 +97,7 @@
   }
   var MissPlayerDebug = function() {
     var SCRIPT_NAME = "Universal Theater Player";
-    var VERSION = "5.1.10.12";
+    var VERSION = "5.1.10.13";
     var STORAGE_PREFIX = "missNoAD_";
     var DEBUG_KEY = "debugEnabled";
     var MAX_LOGS = 300;
@@ -1293,7 +1295,7 @@
             self.frame.contentWindow.postMessage({
               "source": "MissPlayer",
               "action": "open-child-player",
-              "version": "5.1.10.10",
+              "version": "5.1.10.13",
               "depth": 0
             }, "*");
             MissPlayerDebug.mark("iframeTheater:postMessage", {
@@ -1333,7 +1335,7 @@
           this.frame.contentWindow.postMessage({
             "source": "MissPlayer",
             "action": "close-child-player",
-            "version": "5.1.10.10",
+            "version": "5.1.10.13",
             "reason": "parent-iframe-theater-close",
             "depth": 0
           }, "*");
@@ -6387,7 +6389,7 @@
                 frame.contentWindow.postMessage({
                   "source": "MissPlayer",
                   "action": "open-child-player",
-                  "version": "5.1.10.10",
+                  "version": "5.1.10.13",
                   "depth": depth
                 }, "*");
                 sent += 1;
@@ -6418,7 +6420,7 @@
                 frame.contentWindow.postMessage({
                   "source": "MissPlayer",
                   "action": "close-child-player",
-                  "version": "5.1.10.10",
+                  "version": "5.1.10.13",
                   "depth": depth
                 }, "*");
                 sent += 1;

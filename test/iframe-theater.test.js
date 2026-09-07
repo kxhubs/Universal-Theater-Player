@@ -21,6 +21,16 @@ assert.match(
   /^\/\/ @match \*:\/\/123av\.com\/\*$/m,
   "123av pages must remain supported",
 );
+assert.match(
+  source,
+  /^\/\/ @match \*:\/\/javplayer\.cc\/\*$/m,
+  "123av's javplayer child frame must load the script so the floating time controls can open",
+);
+assert.match(
+  source,
+  /^\/\/ @match \*:\/\/\*\.javplayer\.cc\/\*$/m,
+  "javplayer child frame subdomains must remain supported",
+);
 
 const floatingButtonClick = section(
   '"key": "handleButtonClick",',

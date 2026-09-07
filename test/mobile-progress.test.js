@@ -10,8 +10,8 @@ new Function(source);
 
 const metadataVersion = source.match(/^\/\/ @version (.+)$/m);
 const runtimeVersion = source.match(/var VERSION = "([^"]+)";/);
-assert.equal(metadataVersion && metadataVersion[1], "5.1.10.12");
-assert.equal(runtimeVersion && runtimeVersion[1], "5.1.10.12");
+assert.equal(metadataVersion && metadataVersion[1], "5.1.10.13");
+assert.equal(runtimeVersion && runtimeVersion[1], "5.1.10.13");
 
 function section(start, end, from = 0) {
   const startIndex = source.indexOf(start, from);
