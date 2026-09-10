@@ -42,34 +42,92 @@ assert.match(
   "an embedded 123av player must use iframe theater mode before the standalone player fallback",
 );
 
+const floatingButtonFactory = section(
+  '"key": "createButton",',
+  '"key": "updateButtonPosition",',
+);
+assert.match(
+  floatingButtonFactory,
+  /addEventListener\("pointerdown", preservePlayerFocus\)[\s\S]+addEventListener\("mousedown", preservePlayerFocus\)/,
+  "the theater button must not steal focus and trigger an embedded player pause",
+);
+assert.match(
+  floatingButtonFactory,
+  /preservePlayerFocus[\s\S]+event\.preventDefault\(\)/,
+  "focus preservation must cancel the button's default focus action",
+);
+
 const iframeOpen = section(
   "IframeTheater.prototype.open = function open()",
   "IframeTheater.prototype.prepareAncestors",
 );
-assert.match(
+assert.doesNotMatch(
   iframeOpen,
-  /this\.prepareAncestors\(\);[\s\S]+this\.overlay\.appendChild\(this\.container\);[\s\S]+this\.container\.appendChild\(this\.frame\);/,
-  "iframe theater mode must move the iframe into its full-screen container instead of only resizing it in place",
+  /requestFullscreen|webkitRequestFullscreen/,
+  "iframe theater mode must stay inside the webpage and never enter browser fullscreen",
 );
 assert.match(
   iframeOpen,
-  /position:relative !important;inset:auto !important;width:100% !important;height:100% !important/,
-  "the moved iframe must fill the theater container without relying on its original layout",
+  /this\.prepareAncestors\(\);[\s\S]+this\.overlay\.appendChild\(this\.container\);[\s\S]+position:absolute !important;inset:0 !important;width:100% !important;height:100% !important/,
+  "iframe theater mode must fill its original player box without moving the browsing context",
+);
+assert.match(
+  iframeOpen,
+  /position:absolute !important;inset:0 !important;width:100% !important;height:100% !important/,
+  "the iframe must fill its webpage-sized original player box",
+);
+assert.doesNotMatch(
+  iframeOpen,
+  /appendChild\(this\.frame\)|insertBefore\(this\.frame\)|removeChild\(this\.frame\)/,
+  "opening theater mode must not use a browsing-context-destroying iframe move",
+);
+const iframeAncestors = section(
+  "IframeTheater.prototype.prepareAncestors",
+  "IframeTheater.prototype.restoreAncestors",
+);
+assert.match(
+  iframeAncestors,
+  /node === this\.originalParent[\s\S]+position", "fixed"[\s\S]+width", "100vw"[\s\S]+height", "100vh"/,
+  "the original player box must become the webpage-sized clipping boundary",
+);
+assert.match(
+  iframeAncestors,
+  /getComputedStyle\(node\)\.position[\s\S]+position", "relative"/,
+  "static outer ancestors must become effective high-z-index stacking contexts",
 );
 
 const iframeClose = section(
   "IframeTheater.prototype.close = function close()",
   "return IframeTheater",
 );
+const iframeChildOpen = section(
+  "IframeTheater.prototype.requestChildPlayerOpen",
+  "IframeTheater.prototype.close",
+);
 assert.match(
+  iframeChildOpen,
+  /send\(\);\s*\};\s*$/,
+  "the child player must be opened immediately so theater entry has no smaller intermediate layout",
+);
+assert.doesNotMatch(
+  iframeChildOpen,
+  /setTimeout\(send, 150\)/,
+  "theater entry must not retain the visible 150ms child-player delay",
+);
+assert.doesNotMatch(
   iframeClose,
-  /this\.frame\.parentNode !== this\.originalParent/,
-  "closing iframe theater mode must detect the moved iframe",
+  /exitFullscreen|fullscreenchange/,
+  "closing webpage theater mode must not manage browser fullscreen state",
+);
+assert.doesNotMatch(
+  iframeClose,
+  /MissPlayerStatefulDOM\.move|insertBefore\(this\.frame|appendChild\(this\.frame/,
+  "closing iframe theater mode must not move or reload the iframe",
 );
 assert.match(
   iframeClose,
-  /this\.originalParent\.insertBefore\(this\.frame, this\.originalNextSibling\)/,
-  "closing iframe theater mode must restore the iframe to its original position",
+  /this\.frame\.setAttribute\("style", this\.originalStyle\)/,
+  "closing iframe theater mode must restore the iframe's exact original style",
 );
 
 console.log("iframe theater regression checks passed");
