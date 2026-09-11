@@ -11,7 +11,7 @@
 // @description:vi Chế độ rạp hát phổ dụng|điều khiển phát một tay|hỗ trợ trình phát iframe khác nguồn|thanh tiến trình, tốc độ, lặp và tua tùy chỉnh
 // @description:zh-CN 通用视频影院模式|单手播放控制|跨域 iframe 播放器适配|自定义进度、倍速、循环和快进快退控制
 // @description:zh-TW 通用影片影院模式|單手播放控制|跨來源 iframe 播放器適配|自訂進度、倍速、循環與快進快退控制
-// @version 5.1.10.11
+// @version 5.1.10.12
 // @author kxhubs
 // @match *://jable.tv/*
 // @match *://*.jable.tv/*
@@ -73,6 +73,9 @@
 // @icon https://missav.ws/img/favicon.ico
 // @license MIT
 // @namespace loadingi.local
+// @homepage      https://github.com/kxhubs/Universal-Theater-Player
+// @homepageURL   https://github.com/kxhubs/Universal-Theater-Player
+// @supportURL    https://github.com/kxhubs/Universal-Theater-Player
 // @run-at document-start
 // ==/UserScript==
 
@@ -101,7 +104,7 @@
   if (MissPlayerFrameContext.skip) {
     return;
   }
-  var MISS_PLAYER_MESSAGE_VERSION = "5.1.10.11";
+  var MISS_PLAYER_MESSAGE_VERSION = "5.1.10.12";
   var MissPlayerMessageSecurity = function() {
     var trustedHostPattern = /(^|\.)(jable\.tv|missav\.ai|missav\.ws|missav\.live|hanime1\.me|hanimeone\.me|hanime1\.com|javchu\.com|91porn\.com|hsex\.tv|51cg1\.com|jav\.guru|supjav\.com|supremejav\.com|fc2stream\.tv|turbovidhls\.com|streamtape\.com|voe\.sx|eugenemakedraw\.com|123av\.com|javplayer\.cc|javday\.app|javrate\.com|surrit\.store)$/i;
     var trustedExactHosts = new Set([ "18av.mm-cg.com" ]);
@@ -350,7 +353,7 @@
   }();
   var MissPlayerDebug = function() {
     var SCRIPT_NAME = "Universal Theater Player";
-    var VERSION = "5.1.10.11";
+    var VERSION = "5.1.10.12";
     var STORAGE_PREFIX = "missNoAD_";
     var DEBUG_KEY = "debugEnabled";
     var MAX_LOGS = 300;

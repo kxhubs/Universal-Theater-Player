@@ -10,8 +10,8 @@ new Function(source);
 
 const metadataVersion = source.match(/^\/\/ @version (.+)$/m);
 const runtimeVersion = source.match(/var VERSION = "([^"]+)";/);
-assert.equal(metadataVersion && metadataVersion[1], "5.1.10.11");
-assert.equal(runtimeVersion && runtimeVersion[1], "5.1.10.11");
+assert.equal(metadataVersion && metadataVersion[1], "5.1.10.12");
+assert.equal(runtimeVersion && runtimeVersion[1], "5.1.10.12");
 assert.match(source, /^\/\/ @author kxhubs$/m, "userscript author must use the owner's GitHub username");
 
 function section(start, end, from = 0) {
