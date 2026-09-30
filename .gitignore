@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# 本地测试 / 浏览器回归运行产生的临时产物
+.playwright-cli/
+.browser-regression-*/
